@@ -1,0 +1,10 @@
+{
+  "HomePage": {
+    "title": "Xin chào thế giới"
+  },
+  "switchLanguage": {
+    "title": "Chuyển ngôn ngữ",
+    "vi": "Vietnamese",
+    "en": "English"
+  }
+}
