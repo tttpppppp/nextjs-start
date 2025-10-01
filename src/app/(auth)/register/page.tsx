@@ -1,85 +1,161 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useForm } from "react-hook-form";
-import { TextField, Button, Box, Typography } from "@mui/material";
-
-type FormData = {
-  email: string;
-  password: string;
-};
+import {
+  TextField,
+  Button,
+  Typography,
+  Card,
+  CardContent,
+  Divider,
+} from "@mui/material";
+import Link from "next/link";
+import {
+  RegisterBody,
+  RegisterFormType,
+} from "@/schemaValidations/auth.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { redirect, useRouter } from "next/navigation";
+import { registerAccount } from "@/queries/auth.query";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<RegisterFormType>({
+    resolver: zodResolver(RegisterBody),
+  });
 
-  const onSubmit = async (data: FormData) => {
-    console.log("Form Data:", data);
-    const createUser = await fetch("/api/users/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const res = await createUser.json();
-    if (res != null) {
-      console.log(res);
-    }
+  const onSubmit = async (data: RegisterFormType) => {
+    console.log(data);
+
+    const { confirmPassword, ...body } = data;
+    await registerAccount(data);
   };
 
+  const { isPending, mutate } = useMutation({
+    mutationFn: onSubmit,
+    onSuccess: () => {
+      router.push("/login");
+    },
+  });
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
-      bgcolor="#f9f9f9"
-    >
-      <Box
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        sx={{
-          p: 4,
-          bgcolor: "white",
-          borderRadius: 2,
-          boxShadow: 3,
-          width: 400,
-        }}
-      >
-        <Typography variant="h5" fontWeight="bold" mb={3}>
-          Đăng ký
-        </Typography>
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl">
+        <CardContent className="p-10">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+              <span className="text-2xl font-bold text-indigo-600">T</span>
+            </div>
+            <Typography variant="h5" className="font-bold text-gray-800">
+              Register Account
+            </Typography>
+            <Typography variant="body2" className="text-gray-500 mt-1">
+              Please sign in to continue
+            </Typography>
+          </div>
 
-        <TextField
-          label="Email"
-          fullWidth
-          margin="normal"
-          {...register("email", { required: "Email là bắt buộc" })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
+          {/* Form */}
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit((data) => {
+              mutate(data);
+            })}
+          >
+            <div className="mb-3">
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                variant="outlined"
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
+              />
+            </div>
 
-        <TextField
-          label="Mật khẩu"
-          type="password"
-          fullWidth
-          margin="normal"
-          {...register("password", { required: "Mật khẩu là bắt buộc" })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
+            <div className="mb-3">
+              <TextField
+                label="Phone number"
+                type="text"
+                fullWidth
+                variant="outlined"
+                {...register("phone")}
+                error={!!errors.phone}
+                helperText={errors.phone?.message}
+              />
+            </div>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          Đăng ký
-        </Button>
-      </Box>
-    </Box>
+            <div className="mb-3">
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                {...register("password")}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+              />
+            </div>
+
+            <div className="mb-3">
+              <TextField
+                label="Confirm password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                {...register("confirmPassword")}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isPending}
+              variant="contained"
+              fullWidth
+              size="large"
+              className="rounded-xl py-3 font-semibold shadow-md hover:shadow-lg transition bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isPending ? "Loading..." : "Register"}
+            </Button>
+          </form>
+
+          <Divider className="my-6">OR</Divider>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="outlined"
+              fullWidth
+              className="rounded-xl py-2 font-medium bg-white hover:bg-gray-50"
+            >
+              Continue with Google
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              className="rounded-xl py-2 font-medium bg-white hover:bg-gray-50"
+            >
+              Continue with GitHub
+            </Button>
+          </div>
+
+          <div className="text-center mt-8 text-sm text-gray-600">
+            Already account?{" "}
+            <Link
+              href="/login"
+              className="text-indigo-600 hover:underline font-medium"
+            >
+              Login
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

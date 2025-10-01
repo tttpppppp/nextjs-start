@@ -9,7 +9,36 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
+import Link from "next/link";
+import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { loginAccount } from "@/queries/auth.query";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 export default function LoginPage() {
+  const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginBodyType>({
+    resolver: zodResolver(LoginBody),
+  });
+  const onSubmit = async (data: LoginBodyType) => {
+    const res = await loginAccount(data);
+    console.log(res);
+  };
+
+  const { isPending, mutate } = useMutation({
+    mutationFn: onSubmit,
+    onSuccess: () => {
+      router.push("/");
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
   return (
     <div className="flex items-center justify-center min-h-screen">
       <Card className="w-full max-w-md shadow-2xl rounded-2xl">
@@ -27,13 +56,19 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form className="space-y-5">
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit((data) => mutate(data))}
+          >
             <div className="mb-3">
               <TextField
                 label="Email"
                 type="email"
                 fullWidth
                 variant="outlined"
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
               />
             </div>
             <div className="mb-3">
@@ -42,17 +77,21 @@ export default function LoginPage() {
                 type="password"
                 fullWidth
                 variant="outlined"
+                {...register("password")}
+                error={!!errors.password}
+                helperText={errors.password?.message}
               />
             </div>
 
             <Button
               type="submit"
               variant="contained"
+              disabled={isPending}
               fullWidth
               size="large"
               className="rounded-xl py-3 font-semibold shadow-md hover:shadow-lg transition bg-indigo-600 hover:bg-indigo-700"
             >
-              Login
+              {isPending ? "Loading..." : "Login"}
             </Button>
           </form>
 
@@ -80,12 +119,12 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="text-center mt-8 text-sm text-gray-600">
             Don’t have an account?{" "}
-            <a
+            <Link
               href="/register"
               className="text-indigo-600 hover:underline font-medium"
             >
               Sign up
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>

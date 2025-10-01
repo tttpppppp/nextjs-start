@@ -4,6 +4,7 @@ import "./globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { configClient } from "../config";
+import AppProvider from "@/components/app-provider";
 const roboto = Roboto({ subsets: ["vietnamese"] });
 
 console.log(configClient);
@@ -22,7 +23,9 @@ export default async function RootLayout({ children }: Props) {
   return (
     <html lang={locale}>
       <body className={`${roboto.className}`}>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <AppProvider>
+          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        </AppProvider>
       </body>
     </html>
   );
