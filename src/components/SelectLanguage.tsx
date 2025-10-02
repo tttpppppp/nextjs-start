@@ -24,21 +24,22 @@ const SelectLanguage = () => {
   };
 
   return (
-    <div className="mt-10">
+    <div className="">
       <Box sx={{ maxWidth: 250 }}>
-        <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">{t("title")}</InputLabel>
+        <FormControl size="medium" sx={{ minWidth: 60 }}>
           <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
             value={language}
-            label="Language"
             onChange={handleChange}
+            displayEmpty
+            sx={{
+              "& .MuiSelect-select": { py: 1, px: 2, fontSize: "1rem" },
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#ccc" },
+            }}
           >
             {locales.map((locales, index) => {
               return (
                 <MenuItem key={index} value={locales}>
-                  {t(locales)}
+                  {locales}
                 </MenuItem>
               );
             })}

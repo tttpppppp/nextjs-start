@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const isAUthenCation = false;
+const privateRoute = ["/manager"];
+const publicRoute = ["/auth/login"];
 
 export function middleware(request: NextRequest) {
+  const token = request.cookies.get("token")?.value;
+  const isAuthenticated = Boolean(token);
+
   const { pathname } = request.nextUrl;
-  if (!isAUthenCation) {
+
+  if (privateRoute.some((route) => route === pathname) && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
-  console.log(pathname);
+  if (publicRoute.some((route) => route === pathname) && isAuthenticated) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/explore"],
+  matcher: ["/auth/login", "/manager/:path*"],
 };

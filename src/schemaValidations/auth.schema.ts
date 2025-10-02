@@ -34,6 +34,7 @@ export const RegisterBody = z
     confirmPassword: z
       .string()
       .nonempty("Xác nhận mật khẩu không được bỏ trống"),
+    role: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu không khớp",

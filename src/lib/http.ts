@@ -5,10 +5,11 @@ class HttpConfig {
   constructor() {
     this.instance = axios.create({
       baseURL: "/api",
-      timeout: 1000,
-      headers: { "X-Custom-Header": "foobar" },
+      timeout: 5000,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 }
-
 export const Http = new HttpConfig().instance;
