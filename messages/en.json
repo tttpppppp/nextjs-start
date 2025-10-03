@@ -1,9 +1,8 @@
 {
   "HomePage": {
-    "title": "Hello world!"
+    "title": "Home"
   },
   "switchLanguage": {
-    "title": "Chuyển ngôn ngữ",
     "vi": "Vietnamese",
     "en": "English"
   }

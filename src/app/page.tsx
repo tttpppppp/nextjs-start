@@ -1,3 +1,7 @@
+"use client";
+import { useTranslations } from "next-intl";
+
 export default function Home() {
-  return <div className="text-center text-4xl mt-10">Trang chủ</div>;
+  const t = useTranslations("HomePage");
+  return <div className="text-center text-4xl mt-10">{t("title")}</div>;
 }

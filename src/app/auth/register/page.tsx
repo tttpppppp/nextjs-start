@@ -19,6 +19,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { registerAccount } from "@/queries/auth.query";
+import { create } from "zustand";
+import { useSnackBarStore } from "@/store/Snackbar";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -41,12 +43,16 @@ export default function RegisterPage() {
     throw new Error(res.data.message);
   };
 
+  const { showSnack } = useSnackBarStore();
+
   const { isPending, mutate } = useMutation({
     mutationFn: onSubmit,
     onSuccess: () => {
       router.push("/auth/login");
+      showSnack("Đăng kí thành công", "success");
     },
   });
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <Card className="w-full max-w-md shadow-2xl rounded-2xl">

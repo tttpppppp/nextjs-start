@@ -11,4 +11,5 @@ const registerAccount = async (data: RegisterBodyType) => {
 const loginAccount = async (data: LoginBodyType) => {
   return await Http.post<ResponseData<string>>("/auth/login", data);
 };
+
 export { registerAccount, loginAccount };

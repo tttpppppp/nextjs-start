@@ -1,7 +1,8 @@
-import axios from "axios";
-import type { AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
+
 class HttpConfig {
   instance: AxiosInstance;
+
   constructor() {
     this.instance = axios.create({
       baseURL: "/api",
@@ -10,6 +11,20 @@ class HttpConfig {
         "Content-Type": "application/json",
       },
     });
+
+    this.instance.interceptors.request.use(
+      (config) => {
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+    this.instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
   }
 }
+
 export const Http = new HttpConfig().instance;

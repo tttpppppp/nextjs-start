@@ -16,8 +16,10 @@ import { useForm } from "react-hook-form";
 import { loginAccount } from "@/queries/auth.query";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { saveCookie } from "@/utils/utils";
+import { decodeJwt, getCookieUser, saveCookie } from "@/utils/utils";
 import { configClient } from "@/config";
+import { useSnackBarStore } from "@/store/Snackbar";
+import { useAuthStore } from "@/store/Auth";
 
 const getOauthGoogleUrl = () => {
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -40,6 +42,9 @@ const googleOAuthUrl = getOauthGoogleUrl();
 
 export default function LoginPage() {
   const router = useRouter();
+  const { showSnack } = useSnackBarStore();
+  const { setUser, setAuthenticate } = useAuthStore();
+
   const {
     register,
     handleSubmit,
@@ -59,7 +64,13 @@ export default function LoginPage() {
     mutationFn: onSubmit,
     onSuccess: (data) => {
       saveCookie(data.data.data as string);
+      setAuthenticate(Boolean(getCookieUser()));
+      const decodedUser = decodeJwt(data.data.data as string);
+      if (decodedUser) {
+        setUser(decodedUser);
+      }
       router.push("/");
+      showSnack("Đăng nhập thành công", "success");
     },
     onError: (error) => {
       console.log(error);

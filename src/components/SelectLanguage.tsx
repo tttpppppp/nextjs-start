@@ -4,18 +4,17 @@ import { setUserLocale } from "@/services/locale";
 import {
   Box,
   FormControl,
-  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
 } from "@mui/material";
 import { useLocale, useTranslations } from "next-intl";
-import React from "react";
+import React, { useState } from "react";
 
 const SelectLanguage = () => {
   const t = useTranslations("switchLanguage");
   const locale = useLocale();
-  const [language, setlanguage] = React.useState(locale);
+  const [language, setlanguage] = useState(locale);
 
   const handleChange = async (event: SelectChangeEvent) => {
     const newLocale = event.target.value as Locale;

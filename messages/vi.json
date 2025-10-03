@@ -1,9 +1,8 @@
 {
   "HomePage": {
-    "title": "Xin chào thế giới"
+    "title": "Trang chủ"
   },
   "switchLanguage": {
-    "title": "Chuyển ngôn ngữ",
     "vi": "Vietnamese",
     "en": "English"
   }
