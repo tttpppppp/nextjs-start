@@ -1,9 +1,9 @@
 // app/api/auth/google/callback/route.ts
 import { NextResponse } from "next/server";
 import axios from "axios";
-import { createSigner } from "fast-jwt";
 import { DataResponse } from "@/app/api/response/DataReponse";
 import { HttpStatus } from "@/enum/htppStatus";
+import { signJwt } from "@/utils/jwt";
 
 export async function POST(req: Request) {
   const { code } = await req.json();
@@ -30,13 +30,13 @@ export async function POST(req: Request) {
 
   const googleUser = userRes.data;
 
-  const signer = createSigner({ key: process.env.SECRET_KEY, expiresIn: 60 });
-  const token = signer({
+  const accessToken = signJwt({
     email: googleUser.email,
     name: googleUser.name,
     picture: googleUser.picture,
   });
+
   return NextResponse.json(
-    new DataResponse(HttpStatus.OK, "Lấy dữ liệu thành công", token)
+    new DataResponse(HttpStatus.OK, "Lấy dữ liệu thành công", accessToken)
   );
 }

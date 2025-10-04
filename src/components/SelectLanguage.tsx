@@ -9,6 +9,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import React, { useState } from "react";
 
 const SelectLanguage = () => {
@@ -38,7 +39,10 @@ const SelectLanguage = () => {
             {locales.map((locales, index) => {
               return (
                 <MenuItem key={index} value={locales}>
-                  {locales}
+                  <div className="flex gap-2">
+                    <Image src={t(locales)} width={24} height={24} alt="" />{" "}
+                    {locales}
+                  </div>
                 </MenuItem>
               );
             })}

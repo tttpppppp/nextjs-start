@@ -12,8 +12,8 @@ export const getCookieUser = (): string | undefined => {
 };
 
 // Xóa cookie (nếu cần)
-export const removeCookie = () => {
-  Cookies.remove("token");
+export const removeCookie = (name: string) => {
+  Cookies.remove(name);
 };
 
 export const decodeJwt = (token: string) => {

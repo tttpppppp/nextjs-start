@@ -16,11 +16,9 @@ import {
   RegisterFormType,
 } from "@/schemaValidations/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { registerAccount } from "@/queries/auth.query";
-import { create } from "zustand";
 import { useSnackBarStore } from "@/store/Snackbar";
+import { useRegisterMutation } from "@/queries/auth.query";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,27 +29,18 @@ export default function RegisterPage() {
   } = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterBody),
   });
-
-  const onSubmit = async (data: RegisterFormType) => {
-    console.log(data);
-
-    const { confirmPassword, ...body } = data;
-    const res = await registerAccount(body);
-    if (res.data.status == 201) {
-      return res;
-    }
-    throw new Error(res.data.message);
-  };
-
+  const { mutate: registerMutate, isPending, error } = useRegisterMutation();
   const { showSnack } = useSnackBarStore();
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: onSubmit,
-    onSuccess: () => {
-      router.push("/auth/login");
-      showSnack("Đăng kí thành công", "success");
-    },
-  });
+  const onSubmit = async (data: RegisterFormType) => {
+    const { confirmPassword, ...body } = data;
+    registerMutate(body, {
+      onSuccess: () => {
+        router.push("/auth/login");
+        showSnack("Đăng kí thành công", "success");
+      },
+    });
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -70,12 +59,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form
-            className="space-y-5"
-            onSubmit={handleSubmit((data) => {
-              mutate(data);
-            })}
-          >
+          <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <TextField
                 label="Email"

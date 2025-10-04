@@ -21,6 +21,12 @@ class HttpConfig {
     this.instance.interceptors.response.use(
       (response) => response,
       (error) => {
+        if (error.response) {
+          const status = error.response.status;
+          if (status === 401) {
+            console.log("Unauthorized! Redirect to login or refresh token.");
+          }
+        }
         return Promise.reject(error);
       }
     );

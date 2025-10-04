@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   TextField,
   Button,
@@ -10,16 +11,15 @@ import {
   Divider,
 } from "@mui/material";
 import Link from "next/link";
-import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
+import { LoginBodyType, LoginBody } from "@/schemaValidations/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { loginAccount } from "@/queries/auth.query";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { decodeJwt, getCookieUser, saveCookie } from "@/utils/utils";
 import { configClient } from "@/config";
 import { useSnackBarStore } from "@/store/Snackbar";
 import { useAuthStore } from "@/store/Auth";
+import { useLoginMutation } from "@/queries/auth.query";
 
 const getOauthGoogleUrl = () => {
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -38,12 +38,15 @@ const getOauthGoogleUrl = () => {
   return `${rootUrl}?${qs.toString()}`;
 };
 
-const googleOAuthUrl = getOauthGoogleUrl();
-
 export default function LoginPage() {
   const router = useRouter();
   const { showSnack } = useSnackBarStore();
-  const { setUser, setAuthenticate } = useAuthStore();
+  const { setUser, setAuthenticate, logout } = useAuthStore();
+  const { mutate: loginMutate, isPending, error } = useLoginMutation();
+
+  useEffect(() => {
+    logout();
+  }, [logout]);
 
   const {
     register,
@@ -52,33 +55,25 @@ export default function LoginPage() {
   } = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
   });
-  const onSubmit = async (data: LoginBodyType) => {
-    const res = await loginAccount(data);
-    if (res.data.status == 200) {
-      return res;
-    }
-    throw new Error(res.data.message);
+
+  const onSubmit = (data: LoginBodyType) => {
+    loginMutate(data, {
+      onSuccess: (res) => {
+        saveCookie(res.data.data as string);
+        setAuthenticate(Boolean(getCookieUser()));
+        const decodedUser = decodeJwt(res.data.data as string);
+        if (decodedUser) setUser(decodedUser);
+        router.push("/");
+        showSnack("Đăng nhập thành công", "success");
+      },
+      onError: (err: any) => {
+        showSnack(err.message || "Đăng nhập thất bại", "error");
+      },
+    });
   };
 
-  const { isPending, mutate, error } = useMutation({
-    mutationFn: onSubmit,
-    onSuccess: (data) => {
-      saveCookie(data.data.data as string);
-      setAuthenticate(Boolean(getCookieUser()));
-      const decodedUser = decodeJwt(data.data.data as string);
-      if (decodedUser) {
-        setUser(decodedUser);
-      }
-      router.push("/");
-      showSnack("Đăng nhập thành công", "success");
-    },
-    onError: (error) => {
-      console.log(error);
-    },
-  });
-
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <Card className="w-full max-w-md shadow-2xl rounded-2xl">
         <CardContent className="p-10">
           <div className="text-center mb-8">
@@ -93,58 +88,48 @@ export default function LoginPage() {
             </Typography>
           </div>
 
-          {/* Form */}
-          <div>
-            {error && (
-              <p className="text-red-500 mb-3">{(error as Error).message}</p>
-            )}
+          {error && (
+            <p className="text-red-500 mb-3">{(error as Error).message}</p>
+          )}
 
-            <form
-              className="space-y-5"
-              onSubmit={handleSubmit((data) => mutate(data))}
-            >
-              <div className="mb-3">
-                <TextField
-                  label="Email"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  {...register("email")}
-                  error={!!errors.email}
-                  helperText={errors.email?.message}
-                />
-              </div>
-              <div className="mb-3">
-                <TextField
-                  label="Password"
-                  type="password"
-                  fullWidth
-                  variant="outlined"
-                  {...register("password")}
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isPending}
+          <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+            <div className="flex flex-col gap-5">
+              <TextField
+                label="Email"
+                type="text"
                 fullWidth
-                size="large"
-                className="rounded-xl py-3 font-semibold shadow-md hover:shadow-lg transition bg-indigo-600 hover:bg-indigo-700"
-              >
-                {isPending ? "Loading..." : "Login"}
-              </Button>
-            </form>
-          </div>
+                variant="outlined"
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
+              />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                {...register("password")}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+              />
+            </div>
 
-          {/* Or */}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isPending}
+              fullWidth
+              size="large"
+              className="rounded-xl py-3 font-semibold shadow-md hover:shadow-lg transition bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isPending ? "Loading..." : "Login"}
+            </Button>
+          </form>
+
           <Divider className="my-6">OR</Divider>
 
-          {/* Social login */}
           <div className="flex flex-col gap-3">
-            <Link href={googleOAuthUrl}>
+            <Link href={getOauthGoogleUrl()}>
               <Button
                 variant="outlined"
                 fullWidth
@@ -162,7 +147,6 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          {/* Footer */}
           <div className="text-center mt-8 text-sm text-gray-600">
             Don’t have an account?{" "}
             <Link
